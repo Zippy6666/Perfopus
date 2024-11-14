@@ -1,3 +1,25 @@
+local luafilenames = {
+    lua = true,
+    autorun = true,
+    entities = true,
+    includes = true,
+    modules = true,
+    client = true,
+    server = true,
+    properties = true,
+    gamemodes = true,
+    gamemode = true,
+    weapons = true,
+    vgui = true,
+    skins = true,
+    menu = true,
+    postprocess = true,
+    matproxy = true,
+    bin = true,
+    derma = true,
+    effects = true,
+    entities = true,
+}
 function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     /*
         Makes so that a hook supplies the execution time by passing it as an argument to 'listenerfunc'
@@ -21,9 +43,13 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     local addonname
     if string.StartsWith(short_src, "addons/") then
         split = string.Split(short_src, "/")
-        addonname = split[2]
+        for _, filename in ipairs(split) do
+            if !luafilenames[filename] then
+                addonname = filename
+                break
+            end
+        end
     end
-    if !addonname then return end -- Not addon so screw this mf
 
 
     TIMED_HOOKS = TIMED_HOOKS or {}
@@ -33,7 +59,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( hookfunc(...) )
-        listenerfunc(SysTime()-startTime, "HOOK: "..hooktype.." - "..hookid, )
+        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..hookid, addonname )
         return unpack(return_values)
     end
 
@@ -41,9 +67,9 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
 end
 
 
-concommand.Add(SERVER && "sv_time_listen_hooks" or "cl_time_listen_hooks", function()
+concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function()
     if SERVER then
-        RunConsoleCommand("cl_time_listen_hooks")
+        RunConsoleCommand("cl_perfopus_hooks")
     end
 
     for hookname, hooktbl in pairs(hook.GetTable()) do
