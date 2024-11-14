@@ -20,6 +20,8 @@ local luafilenames = {
     derma = true,
     effects = true,
     entities = true,
+    drive = true,
+    addons = true,
 }
 function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     /*
@@ -42,15 +44,18 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
 
     local short_src = debug.getinfo(hookfunc).short_src
     local addonname
-    if string.StartsWith(short_src, "addons/") then
-        split = string.Split(short_src, "/")
-        for _, filename in ipairs(split) do
-            if !luafilenames[filename] then
-                addonname = filename
-                break
-            end
+    split = string.Split(short_src, "/")
+    for _, filename in ipairs(split) do
+        if !luafilenames[filename] then
+            addonname = filename
+            addonname = string.Replace(addonname, "sv_", "")
+            addonname = string.Replace(addonname, "sh_", "")
+            addonname = string.Replace(addonname, "cl_", "")
+            addonname = string.Replace(addonname, ".lua", "")
+            break
         end
     end
+    if !addonname then return end
 
 
     TIMED_HOOKS = TIMED_HOOKS or {}
