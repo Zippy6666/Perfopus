@@ -1,3 +1,4 @@
+-- https://wiki.facepunch.com/gmod/Lua_Folder_Structure
 local luafilenames = {
     lua = true,
     autorun = true,
