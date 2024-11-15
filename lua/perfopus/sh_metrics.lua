@@ -1,10 +1,10 @@
--- Should contain: Function name, addon name, time
+-- Should contain: Function / hook name, addon name / source, exec time
 PERFOPUS.Metrics = PERFOPUS.Metrics or {}
 
 
-function PERFOPUS.TakeMeasurement( time, name, addonname )
-    PERFOPUS.Metrics[addonname] = PERFOPUS.Metrics[addonname] or {}
-    PERFOPUS.Metrics[addonname][name] = PERFOPUS.Metrics[addonname][name] && PERFOPUS.Metrics[addonname][name] + time or time
+function PERFOPUS.TakeMeasurement( time, name, source )
+    PERFOPUS.Metrics[source] = PERFOPUS.Metrics[source] or {}
+    PERFOPUS.Metrics[source][name] = PERFOPUS.Metrics[source][name] && PERFOPUS.Metrics[source][name] + time or time
 end
 
 

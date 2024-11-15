@@ -1,28 +1,3 @@
--- https://wiki.facepunch.com/gmod/Lua_Folder_Structure
-local luafilenames = {
-    lua = true,
-    autorun = true,
-    entities = true,
-    includes = true,
-    modules = true,
-    client = true,
-    server = true,
-    properties = true,
-    gamemodes = true,
-    gamemode = true,
-    weapons = true,
-    vgui = true,
-    skins = true,
-    menu = true,
-    postprocess = true,
-    matproxy = true,
-    bin = true,
-    derma = true,
-    effects = true,
-    entities = true,
-    drive = true,
-    addons = true,
-}
 function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     /*
         Makes so that a hook supplies the execution time by passing it as an argument to 'listenerfunc'
@@ -43,20 +18,6 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     end
 
     local short_src = debug.getinfo(hookfunc).short_src
-    local addonname
-    split = string.Split(short_src, "/")
-    for _, filename in ipairs(split) do
-        if !luafilenames[filename] then
-            addonname = filename
-            addonname = string.Replace(addonname, "sv_", "")
-            addonname = string.Replace(addonname, "sh_", "")
-            addonname = string.Replace(addonname, "cl_", "")
-            addonname = string.Replace(addonname, ".lua", "")
-            break
-        end
-    end
-    if !addonname then return end
-
 
     TIMED_HOOKS = TIMED_HOOKS or {}
     TIMED_HOOKS[hooktype] = TIMED_HOOKS[hooktype] or {}
@@ -65,7 +26,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( hookfunc(...) )
-        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..hookid, addonname )
+        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..hookid, short_src )
         return unpack(return_values)
     end
 
