@@ -34,6 +34,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
 end
 
 
+-- TODO: Make this work on dedicated servers
 concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function()
     if SERVER then
         RunConsoleCommand("cl_perfopus_hooks")
