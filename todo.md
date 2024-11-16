@@ -1,4 +1,3 @@
 - [ ] Register meta tables and timers, add wrappers for hooks as well if new ones are created during perfopus run
-- [x] Fix spawnmenu reload issue thingy
-- [x] Measure per time unit
-- [x] Only turn red if less optimized than most expensive vanilla gmod script
+- [ ] Release ig?
+- [ ] Make a widget that can be on your screen while u play

@@ -40,7 +40,8 @@ end
 
 
 local readable_metrics_sv = {}
-local last_server_frame_time = 0.1
+local last_server_frame_time = 0
+PERFOPUS.ZOOM = CreateConVar("cl_perfopus_zoom", "8", FCVAR_ARCHIVE)
 function PERFOPUS.RefreshMetrics( panel )
     if !panel or !panel:IsValid() then return end
 
@@ -67,7 +68,7 @@ function PERFOPUS.RefreshMetrics( panel )
     table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
 
     for _, data in ipairs(sequential_tbl) do
-        CreateBar( panel, math.Clamp(data.time/0.05, 0, 1), data )
+        CreateBar( panel, math.Clamp(data.time/PERFOPUS.REFRESH_RATE:GetFloat()*PERFOPUS.ZOOM:GetFloat(), 0, 1), data )
     end
 
 end
@@ -104,10 +105,13 @@ end
 
 conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
 
-    panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
-
     local StartButton = panel:Button("Start Perfopus")
     StartButton.DoClick = function() StartPerfopus(panel) end
+
+    panel:CheckBox("Freeze", "sh_perfopus_freeze")
+    panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
+    panel:NumSlider("Zoom", "cl_perfopus_zoom", 1, 10, 1)
+
 
     PERFOPUS.CurrentPanel = panel
 
