@@ -1,4 +1,4 @@
--- Should contain: Function / hook name, addon name / source, exec time
+-- Should contain: Function / hook name, source, exec time
 PERFOPUS.Metrics = PERFOPUS.Metrics or {}
 
 
@@ -8,26 +8,38 @@ function PERFOPUS.TakeMeasurement( time, name, source )
 end
 
 
-function PERFOPUS.ShowMetrics()
+function PERFOPUS.GetReadableMetrics()
 
-    local addons_metrics = {}
-
-    for addon, functbl in pairs(PERFOPUS.Metrics) do
+    local srcs_metrics = {}
+    for src, functbl in pairs(PERFOPUS.Metrics) do
+        srcs_metrics[src] = {funcs=functbl}
         for funcname, time in pairs(functbl) do
-            addons_metrics[addon] = addons_metrics[addon] && addons_metrics[addon] + time or time
+            srcs_metrics[src].time = srcs_metrics[src].time && srcs_metrics[src].time+time or time
         end
     end
 
-    table.sort( addons_metrics, function(a, b) return a[2] > b[2] end )
-    PrintTable(addons_metrics)
+    local times_ordered = {}
+    for k, v in pairs(srcs_metrics) do
+        table.insert(times_ordered, v.time)
+    end
+    table.sort(times_ordered, function(a, b) return a > b end)
+
+
+    return srcs_metrics, times_ordered
 
 end
 
 
-concommand.Add(SERVER && "sv_perfopus_show" or "cl_perfopus_show", function()
-    if SERVER then
-        RunConsoleCommand("cl_perfopus_show")
-    end
+if SERVER then
+    util.AddNetworkString("OrderServerMetrics")
+end
 
-    PERFOPUS.ShowMetrics()
-end)
+if CLIENT then
+    function PERFOPUS.OrderServerMetrics()
+
+
+    end
+end
+
+
+

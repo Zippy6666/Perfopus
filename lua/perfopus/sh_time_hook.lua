@@ -26,7 +26,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( hookfunc(...) )
-        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..hookid, short_src )
+        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..tostring(hookid), short_src )
         return unpack(return_values)
     end
 
@@ -34,10 +34,11 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
 end
 
 
--- TODO: Make this work on dedicated servers
-concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function()
+concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function(ply)
+    if SERVER && !ply:IsSuperAdmin() then return end
+
     if SERVER then
-        RunConsoleCommand("cl_perfopus_hooks")
+        ply:SendLua('RunConsoleCommand("cl_perfopus_hooks")')
     end
 
     for hookname, hooktbl in pairs(hook.GetTable()) do
@@ -47,6 +48,15 @@ concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function()
     end
 end)
 
+if SERVER then
+    util.AddNetworkString("sv_perfopus_hooks")
+
+    net.Receive("sv_perfopus_hooks", function(_, ply)
+        if !ply:IsSuperAdmin() then return end
+
+        concommand.Run( ply, "sv_perfopus_hooks" )
+    end)
+end
 
 
 
