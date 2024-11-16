@@ -34,29 +34,4 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
 end
 
 
-concommand.Add(SERVER && "sv_perfopus_hooks" or "cl_perfopus_hooks", function(ply)
-    if SERVER && !ply:IsSuperAdmin() then return end
-
-    if SERVER then
-        ply:SendLua('RunConsoleCommand("cl_perfopus_hooks")')
-    end
-
-    for hookname, hooktbl in pairs(hook.GetTable()) do
-        for hookid, hookfunc in pairs(hooktbl) do
-            PERFOPUS.TimeThisHook(hookname, hookid, PERFOPUS.TakeMeasurement)
-        end
-    end
-end)
-
-if SERVER then
-    util.AddNetworkString("sv_perfopus_hooks")
-
-    net.Receive("sv_perfopus_hooks", function(_, ply)
-        if !ply:IsSuperAdmin() then return end
-
-        concommand.Run( ply, "sv_perfopus_hooks" )
-    end)
-end
-
-
 

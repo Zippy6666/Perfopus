@@ -2,7 +2,7 @@ local REALM_CL, REALM_SV = 0, 1
 
 
 PERFOPUS.Bars = PERFOPUS.Bars or {}
-local svcol, clcol = Color(0, 0, 255), Color(255, 255, 0)
+local svcol, clcol = Color(0, 55, 255), Color(255, 200, 0)
 local function CreateBar( panel, frac, perfdata )
     local grey = Color(200, 200, 200)
     local bar = vgui.Create("DPanel", panel)
@@ -23,12 +23,12 @@ local function CreateBar( panel, frac, perfdata )
     end
 
 
-    if bar.perfdata then
-        local ToolTipStr = REALM_CL && "[CLIENT]\n" or "[SERVER]\n"
+    if bar.perfdata && bar.perfdata.realm then
+        local ToolTipStr = bar.perfdata.realm==REALM_CL && "[CLIENT]\n" or "[SERVER]\n"
         ToolTipStr = ToolTipStr.."Functions:\n"
 
         for funcname, time in pairs(bar.perfdata.funcs or {}) do
-            ToolTipStr = ToolTipStr..funcname.." -> "..time.."\n"
+            ToolTipStr = ToolTipStr..funcname.." ~ "..time.."\n"
         end
 
         bar:SetTooltip(ToolTipStr)
@@ -39,6 +39,7 @@ local function CreateBar( panel, frac, perfdata )
 end
 
 
+local readable_metrics_sv, times_ordered_sv = {}, {}
 local function RefreshMetrics( panel )
     for _, bar in ipairs(PERFOPUS.Bars) do
         bar:Remove()
@@ -47,42 +48,56 @@ local function RefreshMetrics( panel )
     -- Tell server we want metrics from it
     PERFOPUS.OrderServerMetrics()
 
-    local readable_metrics, times_ordered = PERFOPUS.GetReadableMetrics()
+
+    local readable_metrics = PERFOPUS.GetReadableMetrics()
+    table.Merge(readable_metrics, readable_metrics_sv)
+
+    local sequential_tbl = {}
+    for source, data in pairs(readable_metrics) do
+        for funcname, functime in pairs(data.funcs) do
+            data.funcs[funcname] = math.Round(functime, 2)
+        end
+        data.source = source
+        table.insert(sequential_tbl, data)
+    end
+
+    table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
+
+
     local largest_exec_time
-    for _, time in ipairs(times_ordered) do
+    for _, data in ipairs(sequential_tbl) do
         if !largest_exec_time then
-            largest_exec_time = time
+            largest_exec_time = data.time
         end
 
-        local perfdata
-        for source, data in pairs(readable_metrics) do
-            if data.time == time then
-                perfdata = table.Copy(data)
-                perfdata.source = source
-                perfdata.realm = REALM_CL
-                break
-            end
-        end
-            
-        CreateBar( panel, time/largest_exec_time, perfdata )
+        CreateBar( panel, data.time/largest_exec_time, data )
     end
+
 end
 
 
+function PERFOPUS.ReceiveServerMetrics(readable_metrics)
+    readable_metrics_sv = readable_metrics
+end
+
+
+PERFOPUS.StartedInMenu = PERFOPUS.StartedInMenu or false
 local function StartPerfopus( panel )
-    Derma_Query(
-        "Start Perfopus? This cannot be undone for your current session, you will have to start a new map in order to stop Perfopus!",
+    if !PERFOPUS.StartedInMenu && !PERFOPUS.Started then
+        Derma_Query(
+            "Start Perfopus? This cannot be undone for your current session, you will have to start a new map in order to stop Perfopus!",
 
-        "Start Perfopus?",
+            "Start Perfopus?",
 
-        "Start",
-        function()
-            net.Start("sv_perfopus_hooks")
-            net.SendToServer()
-        end,
+            "Start",
+            function()
+                net.Start("sv_perfopus_hooks")
+                net.SendToServer()
+            end,
 
-        "Cancel"
-    )
+            "Cancel"
+        )
+    end
 
     if panel && panel:IsValid() then
         RefreshMetrics(panel)
@@ -95,6 +110,9 @@ local function StartPerfopus( panel )
             end
         end)
     end
+
+
+    PERFOPUS.StartedInMenu = true
 end
 
 
@@ -103,5 +121,10 @@ conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
 
     local StartButton = panel:Button("Start Perfopus")
     StartButton.DoClick = function() StartPerfopus(panel) end
+
+    if PERFOPUS.Started then
+        -- Started already, just show metrics
+        StartPerfopus(panel)
+    end
 
 end)

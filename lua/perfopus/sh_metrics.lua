@@ -8,37 +8,51 @@ function PERFOPUS.TakeMeasurement( time, name, source )
 end
 
 
+local REALM_CL, REALM_SV = 0, 1
 function PERFOPUS.GetReadableMetrics()
 
     local srcs_metrics = {}
     for src, functbl in pairs(PERFOPUS.Metrics) do
-        srcs_metrics[src] = {funcs=functbl}
+        srcs_metrics[src] = {funcs=functbl, realm=SERVER && REALM_SV or REALM_CL }
         for funcname, time in pairs(functbl) do
             srcs_metrics[src].time = srcs_metrics[src].time && srcs_metrics[src].time+time or time
         end
     end
 
-    local times_ordered = {}
-    for k, v in pairs(srcs_metrics) do
-        table.insert(times_ordered, v.time)
-    end
-    table.sort(times_ordered, function(a, b) return a > b end)
-
-
-    return srcs_metrics, times_ordered
+    return srcs_metrics
 
 end
 
 
 if SERVER then
     util.AddNetworkString("OrderServerMetrics")
+    util.AddNetworkString("SendServerMetrics")
+
+    net.Receive("OrderServerMetrics", function(_, ply)
+        if !ply:IsSuperAdmin() then return end
+
+        local readable_metrics = PERFOPUS.GetReadableMetrics()
+    
+        -- Very expensive, I know
+        net.Start("SendServerMetrics")
+        net.WriteTable(readable_metrics)
+        net.Send(ply)
+    end)
 end
+
 
 if CLIENT then
     function PERFOPUS.OrderServerMetrics()
-
-
+        if !LocalPlayer():IsSuperAdmin() then return end
+        net.Start("OrderServerMetrics")
+        net.SendToServer()
     end
+
+    net.Receive("SendServerMetrics", function()
+        if !LocalPlayer():IsSuperAdmin() then return end
+        local readable_metrics = net.ReadTable()
+        PERFOPUS.ReceiveServerMetrics(readable_metrics)
+    end)
 end
 
 
