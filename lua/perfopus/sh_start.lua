@@ -1,6 +1,6 @@
 PERFOPUS.Started = PERFOPUS.Started or false
 
-local REFRESH_RATE = 0.1
+local REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FCVAR_ARCHIVE, FCVAR_REPLICATED))
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
     if SERVER && !ply:IsSuperAdmin() then return end
     if PERFOPUS.Started then return end
@@ -20,7 +20,10 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
         PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
     end
 
-    timer.Create("PERFOPUS", REFRESH_RATE, 0, function()
+    local NextThink = CurTime()
+    hook.Add("Think", "PERFOPUS", function()
+        if NextThink > CurTime() then return end
+
         if CLIENT then
             PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
         elseif SERVER then
@@ -36,6 +39,8 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
                 funcs[func] = 0 -- Reset time
             end
         end
+
+        NextThink = CurTime()+REFRESH_RATE:GetFloat()
     end)
 
     PERFOPUS.Started = true

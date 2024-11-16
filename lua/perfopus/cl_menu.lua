@@ -64,7 +64,7 @@ function PERFOPUS.RefreshMetrics( panel )
         table.insert(sequential_tbl, data)
     end
 
-    -- table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
+    table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
 
     for _, data in ipairs(sequential_tbl) do
         CreateBar( panel, math.Clamp(data.time/0.05, 0, 1), data )
@@ -104,6 +104,7 @@ end
 
 conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
 
+    panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
 
     local StartButton = panel:Button("Start Perfopus")
     StartButton.DoClick = function() StartPerfopus(panel) end

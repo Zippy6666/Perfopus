@@ -4,6 +4,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     */
 
     if TIMED_HOOKS && TIMED_HOOKS[hooktype] && TIMED_HOOKS[hooktype][hookid] then print("already timed") return end
+    if hookid && isstring(hookid) && string.StartsWith(hookid, "PERFOPUS") then return end -- Don't time performance on PERFOPUS hooks
 
     local hooktbl = hook.GetTable()[hooktype]
     if !hooktbl then
