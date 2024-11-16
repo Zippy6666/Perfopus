@@ -7,14 +7,14 @@ local function CreateBar( panel, frac, perfdata )
     local grey = Color(200, 200, 200)
     local bar = vgui.Create("DPanel", panel)
     bar:Dock(TOP)
-    bar.frac = frac or 0
+    bar.Fraction = frac or 0
     bar:DockMargin(6, 2, 6, 2)
 
     bar.perfdata = perfdata
 
     function bar:Paint( w, h )
         draw.RoundedBox( 5, 0, 0, w, h, grey )
-        draw.RoundedBox( 5, 0, h*0.1, w*bar.frac, h*0.8, Color(Lerp(bar.frac, 0, 255), Lerp(bar.frac, 255 ,0), 50) )
+        draw.RoundedBox( 5, 0, h*0.1, w*bar.Fraction, h*0.8, Color(Lerp(bar.Fraction, 0, 255), Lerp(bar.Fraction, 255 ,0), 50) )
         local textcol = ( bar.perfdata && bar.perfdata.realm &&
         (bar.perfdata.realm == REALM_CL && clcol) or (bar.perfdata.realm == REALM_SV && svcol) )
         or color_white
@@ -39,14 +39,17 @@ local function CreateBar( panel, frac, perfdata )
 end
 
 
-local readable_metrics_sv, times_ordered_sv = {}, {}
-local function RefreshMetrics( panel )
+local readable_metrics_sv = {}
+local last_server_frame_time = 0.1
+function PERFOPUS.RefreshMetrics( panel )
+    if !panel or !panel:IsValid() then return end
+
     for _, bar in ipairs(PERFOPUS.Bars) do
         bar:Remove()
     end
 
     -- Tell server we want metrics from it
-    PERFOPUS.OrderServerMetrics()
+    -- PERFOPUS.OrderServerMetrics()
 
 
     local readable_metrics = PERFOPUS.GetReadableMetrics()
@@ -55,29 +58,24 @@ local function RefreshMetrics( panel )
     local sequential_tbl = {}
     for source, data in pairs(readable_metrics) do
         for funcname, functime in pairs(data.funcs) do
-            data.funcs[funcname] = math.Round(functime, 2)
+            data.funcs[funcname] = functime
         end
         data.source = source
         table.insert(sequential_tbl, data)
     end
 
-    table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
+    -- table.sort(sequential_tbl, function(a, b) return a.time > b.time end)
 
-
-    local largest_exec_time
     for _, data in ipairs(sequential_tbl) do
-        if !largest_exec_time then
-            largest_exec_time = data.time
-        end
-
-        CreateBar( panel, data.time/largest_exec_time, data )
+        CreateBar( panel, math.Clamp(data.time/0.05, 0, 1), data )
     end
 
 end
 
 
-function PERFOPUS.ReceiveServerMetrics(readable_metrics)
+function PERFOPUS.ReceiveServerMetrics(readable_metrics, ftime)
     readable_metrics_sv = readable_metrics
+    last_server_frame_time = ftime
 end
 
 
@@ -91,24 +89,12 @@ local function StartPerfopus( panel )
 
             "Start",
             function()
-                net.Start("sv_perfopus_hooks")
+                net.Start("sv_perfopus_start")
                 net.SendToServer()
             end,
 
             "Cancel"
         )
-    end
-
-    if panel && panel:IsValid() then
-        RefreshMetrics(panel)
-
-        timer.Create("PERFOPUS", 2, 0, function()
-            if panel:IsValid() then
-                RefreshMetrics(panel)
-            else
-                timer.Remove("PERFOPUS")
-            end
-        end)
     end
 
 
@@ -121,6 +107,8 @@ conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
 
     local StartButton = panel:Button("Start Perfopus")
     StartButton.DoClick = function() StartPerfopus(panel) end
+
+    PERFOPUS.CurrentPanel = panel
 
     if PERFOPUS.Started then
         -- Started already, just show metrics

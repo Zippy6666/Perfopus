@@ -25,33 +25,35 @@ end
 
 
 if SERVER then
-    util.AddNetworkString("OrderServerMetrics")
+    -- util.AddNetworkString("OrderServerMetrics")
     util.AddNetworkString("SendServerMetrics")
 
-    net.Receive("OrderServerMetrics", function(_, ply)
-        if !ply:IsSuperAdmin() then return end
+    -- net.Receive("OrderServerMetrics", function(_, ply)
+    --     if !ply:IsSuperAdmin() then return end
 
-        local readable_metrics = PERFOPUS.GetReadableMetrics()
+    --     local readable_metrics = PERFOPUS.GetReadableMetrics()
     
-        -- Very expensive, I know
-        net.Start("SendServerMetrics")
-        net.WriteTable(readable_metrics)
-        net.Send(ply)
-    end)
+    --     -- Very expensive, I know
+    --     net.Start("SendServerMetrics")
+    --     net.WriteTable(readable_metrics)
+    --     net.WriteFloat(FrameTime())
+    --     net.Send(ply)
+    -- end)
 end
 
 
 if CLIENT then
     function PERFOPUS.OrderServerMetrics()
         if !LocalPlayer():IsSuperAdmin() then return end
-        net.Start("OrderServerMetrics")
-        net.SendToServer()
+        -- net.Start("OrderServerMetrics")
+        -- net.SendToServer()
     end
 
     net.Receive("SendServerMetrics", function()
         if !LocalPlayer():IsSuperAdmin() then return end
         local readable_metrics = net.ReadTable()
-        PERFOPUS.ReceiveServerMetrics(readable_metrics)
+        local ftime = net.ReadFloat()
+        PERFOPUS.ReceiveServerMetrics(readable_metrics, ftime)
     end)
 end
 

@@ -1,5 +1,4 @@
 - [ ] Register meta tables and timers, add wrappers for hooks as well if new ones are created during perfopus run
 - [x] Fix spawnmenu reload issue thingy
-- [ ] Measure per time unit
-- [ ] Only turn red if less optimized than most expensive vanilla gmod script
-- [ ] Don't show bar if performance impact is trivial
+- [x] Measure per time unit
+- [x] Only turn red if less optimized than most expensive vanilla gmod script
