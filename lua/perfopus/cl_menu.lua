@@ -4,7 +4,7 @@ local REALM_CL, REALM_SV = 0, 1
 PERFOPUS.Bars = PERFOPUS.Bars or {}
 local svcol, clcol = Color(0, 55, 255), Color(255, 200, 0)
 local function CreateBar( panel, frac, perfdata )
-    local grey = Color(200, 200, 200)
+    local grey = Color(125, 125, 125)
     local bar = vgui.Create("DPanel", panel)
     bar:Dock(TOP)
     bar.Fraction = frac or 0
@@ -25,14 +25,25 @@ local function CreateBar( panel, frac, perfdata )
 
     if bar.perfdata && bar.perfdata.realm then
         local ToolTipStr = bar.perfdata.realm==REALM_CL && "[CLIENT]\n" or "[SERVER]\n"
-        ToolTipStr = ToolTipStr.."Functions:\n"
 
+        local tooltip_func_metrics = {}
         for funcname, time in pairs(bar.perfdata.funcs or {}) do
-            ToolTipStr = ToolTipStr..funcname.." ~ "..time.."\n"
+            table.insert(tooltip_func_metrics, {name=funcname, time=math.Round(time, 3)})
         end
 
-        bar:SetTooltip(ToolTipStr)
-        bar:SetTooltipDelay(0)
+        if !table.IsEmpty(tooltip_func_metrics) then
+            table.sort(tooltip_func_metrics, function(a, b) return a.time > b.time end)
+
+            ToolTipStr = ToolTipStr.."Most time consuming funcs:\n"
+        
+            for _, funcdata in ipairs(tooltip_func_metrics) do
+                if funcdata.time == 0 then continue end
+                ToolTipStr = ToolTipStr..funcdata.name.." ~ "..funcdata.time.."\n"
+            end
+
+            bar:SetTooltip(ToolTipStr)
+            bar:SetTooltipDelay(0)
+        end
     end
 
     table.insert(PERFOPUS.Bars, bar)
@@ -92,14 +103,12 @@ local function StartPerfopus( panel )
             function()
                 net.Start("sv_perfopus_start")
                 net.SendToServer()
+                PERFOPUS.StartedInMenu = true
             end,
 
             "Cancel"
         )
     end
-
-
-    PERFOPUS.StartedInMenu = true
 end
 
 

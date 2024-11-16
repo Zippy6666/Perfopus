@@ -1,9 +1,5 @@
 function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
-    /*
-        Makes so that a hook supplies the execution time by passing it as an argument to 'listenerfunc'
-    */
-
-    if TIMED_HOOKS && TIMED_HOOKS[hooktype] && TIMED_HOOKS[hooktype][hookid] then print("already timed") return end
+    if TIMED_HOOKS && TIMED_HOOKS[hooktype] && TIMED_HOOKS[hooktype][hookid] then return end
     if hookid && isstring(hookid) && string.StartsWith(hookid, "PERFOPUS") then return end -- Don't time performance on PERFOPUS hooks
 
     local hooktbl = hook.GetTable()[hooktype]

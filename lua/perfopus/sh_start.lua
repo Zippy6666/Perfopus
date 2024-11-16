@@ -6,9 +6,12 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
     if SERVER && !ply:IsSuperAdmin() then return end
     if PERFOPUS.Started then return end
 
+
+    -- Do on client as well if done from server
     if SERVER then
         ply:SendLua('RunConsoleCommand("cl_perfopus_start")')
     end
+
 
     -- Time all hooks
     for hookname, hooktbl in pairs(hook.GetTable()) do
@@ -17,11 +20,12 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
         end
     end
 
+
+    -- Timer stuff for refresh
+    local NextThink = CurTime()
     if CLIENT then
         PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
     end
-
-    local NextThink = CurTime()
     hook.Add("Think", "PERFOPUS", function()
         if PERFOPUS.FREEZE:GetBool() then return end
         if NextThink > CurTime() then return end
@@ -36,15 +40,14 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
             net.Send(ply)
         end
 
-        for source, funcs in pairs(PERFOPUS.Metrics) do
-            for func in pairs(funcs) do
-                funcs[func] = 0 -- Reset time
-            end
-        end
+        table.Empty(PERFOPUS.Metrics)
+
 
         NextThink = CurTime()+PERFOPUS.REFRESH_RATE:GetFloat()
     end)
 
+
+    -- Perfopus started
     PERFOPUS.Started = true
 end)
 

@@ -1,3 +1,4 @@
-- [ ] Register meta tables and timers, add wrappers for hooks as well if new ones are created during perfopus run
-- [ ] Release ig?
+- [ ] Register timers
+- [ ] Register hooks created at runtime
+- [ ] Register currently spawned entities
 - [ ] Make a widget that can be on your screen while u play
