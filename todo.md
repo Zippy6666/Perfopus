@@ -1,4 +1,4 @@
-- [ ] Register timers
-- [ ] Register hooks created at runtime
-- [ ] Register currently spawned entities
-- [ ] Make a widget that can be on your screen while u play
+# TODO
+- Register timers
+- Register hooks created at runtime
+- Register newly registered methods for entities

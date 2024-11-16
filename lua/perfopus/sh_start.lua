@@ -2,6 +2,7 @@ PERFOPUS.Started = PERFOPUS.Started or false
 
 PERFOPUS.REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FCVAR_ARCHIVE, FCVAR_REPLICATED))
 PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
+
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
     if SERVER && !ply:IsSuperAdmin() then return end
     if PERFOPUS.Started then return end
@@ -18,6 +19,12 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
         for hookid, hookfunc in pairs(hooktbl) do
             PERFOPUS.TimeThisHook(hookname, hookid, PERFOPUS.TakeMeasurement)
         end
+    end
+
+
+    -- Time all currently spawned entities
+    for _, ent in ipairs(ents.GetAll()) do
+        PERFOPUS.TimeThisEntity( ent, PERFOPUS.TakeMeasurement )
     end
 
 

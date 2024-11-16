@@ -24,25 +24,26 @@ local function CreateBar( panel, frac, perfdata )
 
 
     if bar.perfdata && bar.perfdata.realm then
-        local ToolTipStr = bar.perfdata.realm==REALM_CL && "[CLIENT]\n" or "[SERVER]\n"
-
         local tooltip_func_metrics = {}
         for funcname, time in pairs(bar.perfdata.funcs or {}) do
-            table.insert(tooltip_func_metrics, {name=funcname, time=math.Round(time, 3)})
+            table.insert(tooltip_func_metrics, {name=funcname, time=math.Round(time, 4)})
         end
 
         if !table.IsEmpty(tooltip_func_metrics) then
+            local ToolTipStr = ""
             table.sort(tooltip_func_metrics, function(a, b) return a.time > b.time end)
 
-            ToolTipStr = ToolTipStr.."Most time consuming funcs:\n"
-        
             for _, funcdata in ipairs(tooltip_func_metrics) do
                 if funcdata.time == 0 then continue end
-                ToolTipStr = ToolTipStr..funcdata.name.." ~ "..funcdata.time.."\n"
+                ToolTipStr = ToolTipStr..funcdata.name.." ~ "..(funcdata.time*1000).."ms\n"
             end
 
-            bar:SetTooltip(ToolTipStr)
-            bar:SetTooltipDelay(0)
+            if #ToolTipStr != 0 then
+                ToolTipStr = "Most Time Consuming:\n"..ToolTipStr
+
+                bar:SetTooltip(ToolTipStr)
+                bar:SetTooltipDelay(0)
+            end
         end
     end
 
