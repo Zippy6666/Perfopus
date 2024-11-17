@@ -1,3 +1,14 @@
+local HeardNewHook = false
+function PERFOPUS.ListenForNewHooks()
+    hook.Add = conv.wrapFunc("PERFOPUSListenForNewHooks", hook.Add, nil, function(return_values, hooktype, hookid)
+        if HeardNewHook then return end
+        HeardNewHook = true
+        PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
+        HeardNewHook = false
+    end)
+end
+
+
 function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     if TIMED_HOOKS && TIMED_HOOKS[hooktype] && TIMED_HOOKS[hooktype][hookid] then return end
     if hookid && isstring(hookid) && string.StartsWith(hookid, "PERFOPUS") then return end -- Don't time performance on PERFOPUS hooks
@@ -20,7 +31,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     TIMED_HOOKS[hooktype] = TIMED_HOOKS[hooktype] or {}
     TIMED_HOOKS[hooktype][hookid] = true
 
-    newfunc = function(...)
+    local newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( hookfunc(...) )
         listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..tostring(hookid), short_src )

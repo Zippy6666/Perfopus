@@ -20,15 +20,20 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
             PERFOPUS.TimeThisHook(hookname, hookid, PERFOPUS.TakeMeasurement)
         end
     end
+    PERFOPUS.ListenForNewHooks()
 
 
     -- Time all currently spawned entities
     for _, ent in ipairs(ents.GetAll()) do
         PERFOPUS.TimeThisEntity( ent, PERFOPUS.TakeMeasurement )
     end
+    PERFOPUS.ListenForNewEntityMethods()
 
 
-    -- Timer stuff for refresh
+    PERFOPUS.ListenForTimersToTime()
+
+
+    -- Stuff for refresh
     local NextThink = CurTime()
     if CLIENT then
         PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
@@ -64,7 +69,6 @@ if SERVER then
 
     net.Receive("sv_perfopus_start", function(_, ply)
         if !ply:IsSuperAdmin() then return end
-
-        concommand.Run( ply, "sv_perfopus_start" )
+        ply:ConCommand("sv_perfopus_start")
     end)
 end

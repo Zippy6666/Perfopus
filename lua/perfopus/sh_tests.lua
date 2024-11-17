@@ -1,0 +1,1 @@
+-- Test expensive operations to see if perfopus detects them
