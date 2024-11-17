@@ -19,7 +19,6 @@ function PERFOPUS.TimeThisEntMethod( ent, methodname, listenerfunc )
 
     if !isfunction(method) then return end
     if ForbiddenMethods[methodname] then return end
-    print("started watching", methodname)
 
     local short_src = debug.getinfo(method).short_src
     local newfunc = function(...)
