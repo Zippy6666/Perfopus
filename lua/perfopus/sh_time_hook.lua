@@ -3,7 +3,7 @@ function PERFOPUS.ListenForNewHooks()
     hook.Add = conv.wrapFunc("PERFOPUSListenForNewHooks", hook.Add, nil, function(return_values, hooktype, hookid)
         if HeardNewHook then return end
         HeardNewHook = true
-        PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
+        PERFOPUS.TimeThisHook( hooktype, hookid, PERFOPUS.TakeMeasurement )
         HeardNewHook = false
     end)
 end

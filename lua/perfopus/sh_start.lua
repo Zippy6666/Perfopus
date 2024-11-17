@@ -30,7 +30,7 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
     PERFOPUS.ListenForNewEntityMethods()
 
 
-    PERFOPUS.ListenForTimersToTime()
+    PERFOPUS.ListenForTimersToTime(PERFOPUS.TakeMeasurement)
 
 
     -- Stuff for refresh
