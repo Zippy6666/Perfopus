@@ -11,16 +11,15 @@ function PERFOPUS.ListenForNewEntityMethods()
 end
 
 
-local ForbiddenMethods = {
-    Use = true,
-}
+
 function PERFOPUS.TimeThisEntMethod( ent, methodname, listenerfunc )
     local method = ent[methodname]
-
     if !isfunction(method) then return end
-    if ForbiddenMethods[methodname] then return end
 
-    local short_src = debug.getinfo(method).short_src
+    local debuginfo = debug.getinfo(method)
+    if debuginfo.what == "C" then return end -- Don't mess with C functions, they just crash the damn game
+
+    local short_src = debuginfo.short_src
     local newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( method(...) )

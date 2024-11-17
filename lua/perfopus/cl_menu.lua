@@ -96,7 +96,7 @@ PERFOPUS.StartedInMenu = PERFOPUS.StartedInMenu or false
 local function StartPerfopus( panel )
     if !PERFOPUS.StartedInMenu && !PERFOPUS.Started then
         Derma_Query(
-            "Start Perfopus? This cannot be undone, you will have to start a new map in order to stop Perfopus! You will experience worse performance while it is running!",
+            "Start Perfopus? You will have to start a new map in order to stop Perfopus! You will experience worse performance while it is running.",
 
             "Start Perfopus?",
 
