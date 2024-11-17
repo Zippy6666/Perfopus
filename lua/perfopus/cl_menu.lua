@@ -96,7 +96,7 @@ PERFOPUS.StartedInMenu = PERFOPUS.StartedInMenu or false
 local function StartPerfopus( panel )
     if !PERFOPUS.StartedInMenu && !PERFOPUS.Started then
         Derma_Query(
-            "Start Perfopus? This cannot be undone for your current session, you will have to start a new map in order to stop Perfopus!",
+            "Start Perfopus? This cannot be undone, you will have to start a new map in order to stop Perfopus! You will experience worse performance while it is running!",
 
             "Start Perfopus?",
 
@@ -114,6 +114,8 @@ end
 
 
 conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
+
+    panel:Help("Perfopus Performance Metrics")
 
     local StartButton = panel:Button("Start Perfopus")
     StartButton.DoClick = function() StartPerfopus(panel) end

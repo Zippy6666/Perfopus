@@ -1,2 +1,5 @@
-# TODO
-- Register timers
+- Publish on github
+- Description
+    - Tell users to give crash reports
+    - Explain what it does so that it becomes attractive
+    - Notify that it is open source
