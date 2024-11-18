@@ -220,12 +220,6 @@ conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
     panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
     panel:NumSlider("Zoom", "cl_perfopus_zoom", 1, 10, 1)
 
-
     PERFOPUS.CurrentPanel = panel
-
-    if PERFOPUS.Started then
-        -- Started already, just show metrics
-        StartPerfopus(panel)
-    end
 
 end)
