@@ -1,18 +1,5 @@
 local REALM_CL, REALM_SV = 0, 1
-
-PERFOPUS.HIDE_NATIVE = CreateConVar("cl_perfopus_hide_native", "0", FCVAR_ARCHIVE)
-
 local source_cache = {}
-
-cvars.AddChangeCallback("cl_perfopus_hide_native", function()
-    table.Empty(source_cache)
-    if IsValid(PERFOPUS.CurrentPanel) then
-        timer.Simple(0, function()
-            -- Refresh the list whenever the cvar changes
-            PERFOPUS.RefreshMetrics(PERFOPUS.CurrentPanel)
-        end)
-    end
-end, "perfopus_refresh")
 
 -- The paths which are considered native, and so are filtered out of the metrics list
 -- Paths are normalized during checks so are cross-platform safe
@@ -45,6 +32,22 @@ local ADDON_PATTERNS = {
     "^.*/addons/",
     "^.*workshop/content/4000/"
 }
+
+
+PERFOPUS.HIDE_NATIVE = CreateConVar("cl_perfopus_hide_native", "0", FCVAR_ARCHIVE)
+cvars.AddChangeCallback("cl_perfopus_hide_native", function()
+    table.Empty(source_cache)
+    if IsValid(PERFOPUS.CurrentPanel) then
+        timer.Simple(0, function()
+            -- Refresh the list whenever the cvar changes
+            PERFOPUS.RefreshMetrics(PERFOPUS.CurrentPanel)
+        end)
+    end
+end, "perfopus_refresh")
+
+
+PERFOPUS.SHOWING_METRICS = CreateClientConVar("cl_perfopus_showing_metrics", "0", false, true)
+
 
 function PERFOPUS.IsAddonSource(src)
     if source_cache[src] ~= nil then
@@ -141,18 +144,14 @@ end
 
 
 local readable_metrics_sv = {}
-local last_server_frame_time = 0
-PERFOPUS.ZOOM = CreateConVar("cl_perfopus_zoom", "8", FCVAR_ARCHIVE)
+PERFOPUS.ZOOM = CreateConVar("cl_perfopus_zoom", "2", FCVAR_ARCHIVE)
 function PERFOPUS.RefreshMetrics( panel )
     if !panel or !panel:IsValid() then return end
+    if !PERFOPUS.SHOWING_METRICS:GetBool() then return end
 
     for _, bar in ipairs(PERFOPUS.Bars) do
         bar:Remove()
     end
-
-    -- Tell server we want metrics from it
-    -- PERFOPUS.OrderServerMetrics()
-
 
     local readable_metrics = PERFOPUS.GetReadableMetrics()
 
@@ -180,15 +179,21 @@ function PERFOPUS.RefreshMetrics( panel )
 end
 
 
-function PERFOPUS.ReceiveServerMetrics(readable_metrics, ftime)
+function PERFOPUS.ReceiveServerMetrics(readable_metrics)
     readable_metrics_sv = readable_metrics
-    last_server_frame_time = ftime
 end
 
 
-PERFOPUS.StartedInMenu = PERFOPUS.StartedInMenu or false
 local function StartPerfopus( panel )
-    if !PERFOPUS.StartedInMenu && !PERFOPUS.Started then
+    if PERFOPUS.SHOWING_METRICS:GetBool() then return end
+
+
+    if PERFOPUS.Started then
+
+        RunConsoleCommand("cl_perfopus_showing_metrics", "1")
+        PERFOPUS.RefreshMetrics( panel )
+
+    else
         Derma_Query(
             "Start Perfopus? You will have to start a new map in order to stop Perfopus! You will experience worse performance while it is running.",
 
@@ -196,10 +201,14 @@ local function StartPerfopus( panel )
 
             "Start",
             function()
+
                 net.Start("sv_perfopus_start")
                 net.SendToServer()
-                PERFOPUS.StartedInMenu = true
+
                 PERFOPUS.ClearSourceCache()
+
+                RunConsoleCommand("cl_perfopus_showing_metrics", "1")
+                
             end,
 
             "Cancel"
@@ -210,6 +219,12 @@ end
 
 conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
 
+    if !LocalPlayer():IsSuperAdmin() then
+        panel:Help("You must be SuperAdmin!")
+    end
+
+    RunConsoleCommand("cl_perfopus_showing_metrics", "0")
+
     panel:Help("Perfopus Performance Metrics")
 
     local StartButton = panel:Button("Start Perfopus")
@@ -218,7 +233,7 @@ conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
     panel:CheckBox("Freeze", "sh_perfopus_freeze")
     panel:CheckBox("Hide Native GMod Activity", "cl_perfopus_hide_native")
     panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
-    panel:NumSlider("Zoom", "cl_perfopus_zoom", 1, 10, 1)
+    panel:NumSlider("Zoom", "cl_perfopus_zoom", 0.5, 10, 1)
 
     PERFOPUS.CurrentPanel = panel
 

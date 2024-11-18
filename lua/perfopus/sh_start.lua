@@ -4,13 +4,22 @@ PERFOPUS.REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FC
 PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
 
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
-    if SERVER && !ply:IsSuperAdmin() then return end
-    if PERFOPUS.Started then return end
+    if !ply:IsSuperAdmin() then return end
+
+    if CLIENT && PERFOPUS.Started then
+        -- Perfopus already started on this client
+        return
+    end
 
 
-    -- Do on client as well if done from server
     if SERVER then
+
+        -- Run the command for this client
         ply:SendLua('RunConsoleCommand("cl_perfopus_start")')
+
+        -- Already started on server, don't start again
+        if PERFOPUS.Started then return end
+
     end
 
 
@@ -35,29 +44,47 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
 
     -- Stuff for refresh
     local NextThink = CurTime()
-    if CLIENT then
-        PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
-    end
-    hook.Add("Think", "PERFOPUS", function()
-        if PERFOPUS.FREEZE:GetBool() then return end
-        if NextThink > CurTime() then return end
+    if SERVER then
 
-        if CLIENT then
+        hook.Add("Think", "PERFOPUS", function()
+            if PERFOPUS.FREEZE:GetBool() then return end
+            if NextThink > CurTime() then return end
+    
+            
+            for _, superadmin in player.Iterator() do
+                if !superadmin:IsSuperAdmin() then continue end
+                if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
+
+                -- Very expensive, I know
+                net.Start("SendServerMetrics")
+                net.WriteTable(PERFOPUS.GetReadableMetrics())
+                net.Send(superadmin)
+            end
+
+
+            table.Empty(PERFOPUS.Metrics)
+            NextThink = CurTime()+PERFOPUS.REFRESH_RATE:GetFloat()
+        end)
+
+    elseif CLIENT then
+
+        if PERFOPUS.CurrentPanel then
             PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
-        elseif SERVER then
-            -- Very expensive, I know
-            net.Start("SendServerMetrics")
-            net.WriteTable(PERFOPUS.GetReadableMetrics())
-            net.WriteFloat(FrameTime())
-            net.Send(ply)
         end
 
-        table.Empty(PERFOPUS.Metrics)
+        hook.Add("Think", "PERFOPUS", function()
+            if PERFOPUS.FREEZE:GetBool() then return end
+            if NextThink > CurTime() then return end
 
+            if PERFOPUS.CurrentPanel then
+                PERFOPUS.RefreshMetrics( PERFOPUS.CurrentPanel )
+            end
 
-        NextThink = CurTime()+PERFOPUS.REFRESH_RATE:GetFloat()
-    end)
+            table.Empty(PERFOPUS.Metrics)
+            NextThink = CurTime()+PERFOPUS.REFRESH_RATE:GetFloat()
+        end)
 
+    end
 
     -- Perfopus started
     PERFOPUS.Started = true

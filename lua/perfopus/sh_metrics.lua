@@ -33,8 +33,7 @@ if CLIENT then
     net.Receive("SendServerMetrics", function()
         if !LocalPlayer():IsSuperAdmin() then return end
         local readable_metrics = net.ReadTable()
-        local ftime = net.ReadFloat()
-        PERFOPUS.ReceiveServerMetrics(readable_metrics, ftime)
+        PERFOPUS.ReceiveServerMetrics(readable_metrics)
     end)
 end
 
