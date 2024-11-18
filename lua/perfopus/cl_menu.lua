@@ -1,5 +1,94 @@
 local REALM_CL, REALM_SV = 0, 1
 
+PERFOPUS.HIDE_NATIVE = CreateConVar("cl_perfopus_hide_native", "0", FCVAR_ARCHIVE)
+
+local source_cache = {}
+
+cvars.AddChangeCallback("cl_perfopus_hide_native", function()
+    table.Empty(source_cache)
+    if IsValid(PERFOPUS.CurrentPanel) then
+        timer.Simple(0, function()
+            -- Refresh the list whenever the cvar changes
+            PERFOPUS.RefreshMetrics(PERFOPUS.CurrentPanel)
+        end)
+    end
+end, "perfopus_refresh")
+
+-- The paths which are considered native, and so are filtered out of the metrics list
+-- Paths are normalized during checks so are cross-platform safe
+local native_paths = {
+    ["lua/includes/"] = true,
+    ["lua/derma/derma.lua"] = true,
+    ["lua/derma/derma_menus.lua"] = true,
+    ["lua/vgui/vgui.lua"] = true,
+    ["lua/vgui/dnumberscratch.lua"] = true,
+    ["lua/vgui/dframe.lua"] = true,
+    ["lua/vgui/dtextentry.lua"] = true,
+    ["lua/vgui/dbutton.lua"] = true,
+    ["lua/vgui/dpanel.lua"] = true,
+    ["lua/vgui/dcheckbox.lua"] = true,
+    ["lua/vgui/dlabel.lua"] = true,
+    ["lua/vgui/dslider.lua"] = true,
+    ["lua/vgui/dscrollpanel.lua"] = true,
+    ["lua/vgui/dpropertysheet.lua"] = true,
+    ["lua/vgui/dcombobox.lua"] = true,
+    ["lua/postprocess/"] = true,
+    ["lua/menu/menu.lua"] = true,
+    ["gamemodes/base/"] = true,
+    ["gamemodes/sandbox/"] = true,
+    ["gamemodes/darkrp/"] = true,
+    ["lua/matproxy/"] = true,
+    ["lua/skins/"] = true
+}
+
+local ADDON_PATTERNS = {
+    "^.*/addons/",
+    "^.*workshop/content/4000/"
+}
+
+function PERFOPUS.IsAddonSource(src)
+    if source_cache[src] ~= nil then
+        return source_cache[src]
+    end
+
+    src = src:lower():gsub("\\", "/")
+
+    for _, pattern in ipairs(ADDON_PATTERNS) do
+        if string.match(src, pattern) then
+            source_cache[src] = true
+            return true
+        end
+    end
+
+    for path in pairs(native_paths) do
+        if string.find(src, path) then
+            source_cache[src] = false
+            return false
+        end
+    end
+
+    source_cache[src] = true
+    return true
+end
+
+function PERFOPUS.FilterMetrics(metrics)
+    if not PERFOPUS.HIDE_NATIVE:GetBool() then
+        return metrics
+    end
+
+    local filtered = {}
+    for src, data in pairs(metrics) do
+        if PERFOPUS.IsAddonSource(src) then
+            filtered[src] = data
+        end
+    end
+    return filtered
+end
+
+-- Clear cache when Perfopus starts/stops
+function PERFOPUS.ClearSourceCache()
+    table.Empty(source_cache)
+end
 
 PERFOPUS.Bars = PERFOPUS.Bars or {}
 local svcol, clcol = Color(0, 55, 255), Color(255, 200, 0)
@@ -66,6 +155,11 @@ function PERFOPUS.RefreshMetrics( panel )
 
 
     local readable_metrics = PERFOPUS.GetReadableMetrics()
+
+    -- Filter metrics if hide native is enabled
+    readable_metrics = PERFOPUS.FilterMetrics(readable_metrics)
+    readable_metrics_sv = PERFOPUS.FilterMetrics(readable_metrics_sv)
+
     table.Merge(readable_metrics, readable_metrics_sv)
 
     local sequential_tbl = {}
@@ -105,6 +199,7 @@ local function StartPerfopus( panel )
                 net.Start("sv_perfopus_start")
                 net.SendToServer()
                 PERFOPUS.StartedInMenu = true
+                PERFOPUS.ClearSourceCache()
             end,
 
             "Cancel"
@@ -121,6 +216,7 @@ conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
     StartButton.DoClick = function() StartPerfopus(panel) end
 
     panel:CheckBox("Freeze", "sh_perfopus_freeze")
+    panel:CheckBox("Hide Native GMod Activity", "cl_perfopus_hide_native")
     panel:NumSlider("Refresh Rate", "sh_perfopus_refresh_rate", 0.1, 5, 2)
     panel:NumSlider("Zoom", "cl_perfopus_zoom", 1, 10, 1)
 
