@@ -38,8 +38,8 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
         return unpack(return_values)
     end
 
-    local notValid = name == nil || isnumber( name ) or isbool( name ) or isfunction( name ) or !name.IsValid or !IsValid( name )
-	if ( !isstring( name ) and notValid ) then
+    local notValid = hookid == nil || isnumber( hookid ) or isbool( hookid ) or isfunction( hookid ) or !hookid.IsValid or !IsValid( hookid )
+	if ( !isstring( hookid ) and notValid ) then
         return
     end
     
