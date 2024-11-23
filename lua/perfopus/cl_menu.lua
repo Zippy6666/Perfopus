@@ -202,8 +202,12 @@ local function StartPerfopus( panel )
             "Start",
             function()
 
-                net.Start("sv_perfopus_start")
-                net.SendToServer()
+                if LocalPlayer():IsSuperAdmin() then
+                    net.Start("sv_perfopus_start")
+                    net.SendToServer()
+                else
+                    RunConsoleCommand("cl_perfopus_start")
+                end
 
                 PERFOPUS.ClearSourceCache()
 
@@ -218,10 +222,6 @@ end
 
 
 conv.addToolMenu("Utilities", "Performance", "Perfopus", function( panel )
-
-    if !LocalPlayer():IsSuperAdmin() then
-        panel:Help("You must be SuperAdmin!")
-    end
 
     RunConsoleCommand("cl_perfopus_showing_metrics", "0")
 

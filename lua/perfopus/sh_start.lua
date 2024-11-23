@@ -4,7 +4,7 @@ PERFOPUS.REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FC
 PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
 
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
-    if !ply:IsSuperAdmin() then return end
+    if SERVER && !ply:IsSuperAdmin() then return end
 
     if CLIENT && PERFOPUS.Started then
         -- Perfopus already started on this client
@@ -55,9 +55,8 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
                 if !superadmin:IsSuperAdmin() then continue end
                 if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
 
-                -- Very expensive, I know
                 net.Start("SendServerMetrics")
-                net.WriteTable(PERFOPUS.GetReadableMetrics())
+                net.WriteTable(PERFOPUS.GetReadableMetrics()) -- Very expensive, I know
                 net.Send(superadmin)
             end
 
