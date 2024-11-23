@@ -4,9 +4,10 @@ local Developer = GetConVar("developer")
 
 
 if SERVER then
-    
+
     concommand.Add("perfopus_lag_entity", function(ply)
-        if !ply:IsSuperAdmin() then return end
+        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+
         if !PERFOPUS.Started then return end
         if !Developer:GetBool() then return end
 
@@ -23,7 +24,8 @@ if SERVER then
 end
 
 concommand.Add(SERVER && "perfopus_lag_hook" or "cl_perfopus_lag_hook", function(ply)
-    if !ply:IsSuperAdmin() then return end
+    if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+
     if !PERFOPUS.Started then return end
     if !Developer:GetBool() then return end
 
@@ -35,7 +37,7 @@ concommand.Add(SERVER && "perfopus_lag_hook" or "cl_perfopus_lag_hook", function
         for i = 1, 10000 do
             Entity(0):GetPos():Distance(ply:GetPos())
         end
-        
+
         print("lag")
     end)
 
@@ -46,7 +48,8 @@ concommand.Add(SERVER && "perfopus_lag_hook" or "cl_perfopus_lag_hook", function
 end)
 
 concommand.Add(SERVER && "perfopus_lag_timer" or "cl_perfopus_lag_timer", function(ply)
-    if !ply:IsSuperAdmin() then return end
+    if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+
     if !PERFOPUS.Started then return end
     if !Developer:GetBool() then return end
 
@@ -58,7 +61,7 @@ concommand.Add(SERVER && "perfopus_lag_timer" or "cl_perfopus_lag_timer", functi
         for i = 1, 10000 do
             Entity(0):GetPos():Distance(ply:GetPos())
         end
-        
+
         print("lag")
     end)
 

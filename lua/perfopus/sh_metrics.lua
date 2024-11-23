@@ -31,7 +31,8 @@ end
 
 if CLIENT then
     net.Receive("SendServerMetrics", function()
-        if !LocalPlayer():IsSuperAdmin() then return end
+        if ( ( CAMI and !CAMI.PlayerHasAccess(LocalPlayer(), "Perfopus - View Metrics", nil) ) or !LocalPlayer():IsSuperAdmin() ) then return end
+
         local readable_metrics = net.ReadTable()
         PERFOPUS.ReceiveServerMetrics(readable_metrics)
     end)

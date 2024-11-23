@@ -4,7 +4,9 @@ PERFOPUS.REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FC
 PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
 
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
-    if SERVER && !ply:IsSuperAdmin() then return end
+    if SERVER then
+        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
+    end
 
     if CLIENT && PERFOPUS.Started then
         -- Perfopus already started on this client
@@ -49,10 +51,11 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
         hook.Add("Think", "PERFOPUS", function()
             if PERFOPUS.FREEZE:GetBool() then return end
             if NextThink > CurTime() then return end
-    
-            
+
+
             for _, superadmin in player.Iterator() do
-                if !superadmin:IsSuperAdmin() then continue end
+                if ( ( CAMI and !CAMI.PlayerHasAccess(superadmin, "Perfopus - View Metrics", nil) ) or !superadmin:IsSuperAdmin() ) then continue end
+
                 if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
 
                 net.Start("SendServerMetrics")
@@ -94,7 +97,8 @@ if SERVER then
     util.AddNetworkString("sv_perfopus_start")
 
     net.Receive("sv_perfopus_start", function(_, ply)
-        if !ply:IsSuperAdmin() then return end
+        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+
         ply:ConCommand("sv_perfopus_start")
     end)
 end
