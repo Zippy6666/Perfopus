@@ -97,7 +97,7 @@ if SERVER then
     util.AddNetworkString("sv_perfopus_start")
 
     net.Receive("sv_perfopus_start", function(_, ply)
-        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
 
         ply:ConCommand("sv_perfopus_start")
     end)
