@@ -6,7 +6,7 @@ local Developer = GetConVar("developer")
 if SERVER then
 
     concommand.Add("perfopus_lag_entity", function(ply)
-        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
 
         if !PERFOPUS.Started then return end
         if !Developer:GetBool() then return end
@@ -24,7 +24,7 @@ if SERVER then
 end
 
 concommand.Add(SERVER && "perfopus_lag_hook" or "cl_perfopus_lag_hook", function(ply)
-    if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then continue end
+    if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
 
     if !PERFOPUS.Started then return end
     if !Developer:GetBool() then return end
