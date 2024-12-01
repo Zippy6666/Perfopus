@@ -202,7 +202,7 @@ local function StartPerfopus( panel )
             "Start",
             function()
 
-                if ( CAMI and CAMI.PlayerHasAccess(LocalPlayer(), "Perfopus - View Metrics", nil) ) or LocalPlayer():IsSuperAdmin() then
+                if LocalPlayer():IsSuperAdmin() then
                     net.Start("sv_perfopus_start")
                     net.SendToServer()
                 else

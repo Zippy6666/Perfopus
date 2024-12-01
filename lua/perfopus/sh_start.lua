@@ -5,7 +5,7 @@ PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
 
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
     if SERVER then
-        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
+        if ( !ply:IsSuperAdmin() ) then return end
     end
 
     if CLIENT && PERFOPUS.Started then
@@ -54,7 +54,7 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
 
 
             for _, superadmin in player.Iterator() do
-                if ( ( CAMI and !CAMI.PlayerHasAccess(superadmin, "Perfopus - View Metrics", nil) ) or !superadmin:IsSuperAdmin() ) then continue end
+                if ( !superadmin:IsSuperAdmin() ) then continue end
 
                 if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
 
@@ -97,7 +97,7 @@ if SERVER then
     util.AddNetworkString("sv_perfopus_start")
 
     net.Receive("sv_perfopus_start", function(_, ply)
-        if ( ( CAMI and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
+        if ( !ply:IsSuperAdmin() ) then return end
 
         ply:ConCommand("sv_perfopus_start")
     end)
