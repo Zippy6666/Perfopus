@@ -3,3 +3,7 @@ Measures how much performance is impacted by LUA in Garry's Mod. Useful for trac
 
 ## HOW
 Open the spawn menu and go to Utilities -> Performance -> Perfopus. Then press "Start Perfopus".
+
+## TODO
+- [ ] Fix weird behaviour when ULX/ULib present but not CAMI
+- [ ] Prevent overflown messages being sent from server
