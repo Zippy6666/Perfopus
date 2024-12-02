@@ -4,44 +4,40 @@ PERFOPUS.REFRESH_RATE = CreateConVar("sh_perfopus_refresh_rate", "2", bit.bor(FC
 PERFOPUS.FREEZE = CreateConVar("sh_perfopus_freeze", "0", FCVAR_REPLICATED)
 
 concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(ply)
-    if SERVER then
+    if SERVER && IsValid(ply) then
         if ( ( PERFOPUS.CAMIInstalled and !CAMI.PlayerHasAccess(ply, "Perfopus - View Metrics", nil) ) or !ply:IsSuperAdmin() ) then return end
     end
 
-    if CLIENT && PERFOPUS.Started then
-        -- Perfopus already started on this client
-        return
-    end
 
-
-    if SERVER then
+    if SERVER && IsValid(ply) then
 
         -- Run the command for this client
         ply:SendLua('RunConsoleCommand("cl_perfopus_start")')
 
-        -- Already started on server, don't start again
-        if PERFOPUS.Started then return end
-
     end
 
 
-    -- Time all hooks
-    for hookname, hooktbl in pairs(hook.GetTable()) do
-        for hookid, hookfunc in pairs(hooktbl) do
-            PERFOPUS.TimeThisHook(hookname, hookid, PERFOPUS.TakeMeasurement)
+    if !PERFOPUS.Started then
+        -- Time all hooks
+        for hookname, hooktbl in pairs(hook.GetTable()) do
+            for hookid, hookfunc in pairs(hooktbl) do
+                PERFOPUS.TimeThisHook(hookname, hookid, PERFOPUS.TakeMeasurement)
+            end
         end
+        PERFOPUS.ListenForNewHooks()
+
+
+        -- Time all currently spawned entities
+        for _, ent in ipairs(ents.GetAll()) do
+            PERFOPUS.TimeThisEntity( ent, PERFOPUS.TakeMeasurement )
+        end
+        PERFOPUS.ListenForNewEntityMethods()
+
+        PERFOPUS.ListenForTimersToTime(PERFOPUS.TakeMeasurement)
+    
+        -- Perfopus started
+        PERFOPUS.Started = true
     end
-    PERFOPUS.ListenForNewHooks()
-
-
-    -- Time all currently spawned entities
-    for _, ent in ipairs(ents.GetAll()) do
-        PERFOPUS.TimeThisEntity( ent, PERFOPUS.TakeMeasurement )
-    end
-    PERFOPUS.ListenForNewEntityMethods()
-
-
-    PERFOPUS.ListenForTimersToTime(PERFOPUS.TakeMeasurement)
 
 
     -- Stuff for refresh
@@ -58,15 +54,18 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
 
                 if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
 
-                local success, err = pcall(function()
+                for k, v in pairs(PERFOPUS.GetReadableMetrics()) do
                     net.Start("SendServerMetrics")
-                    net.WriteTable(PERFOPUS.GetReadableMetrics()) -- Very expensive, I know
+                    net.WriteString(k)
+                    net.WriteString(PERFOPUS.MakeToolTipString(v.funcs))
+                    net.WriteUInt(v.realm, 1)
+                    net.WriteFloat(v.time)
                     net.Send(superadmin)
-                end)
-
-                if !success && isstring(err) then
-                    conv.devPrint("PERFOPUS ERROR: ", err)
                 end
+
+                -- net.Start("SendServerMetrics")
+                -- net.WriteTable(PERFOPUS.GetReadableMetrics()) -- Very expensive, I know
+                -- net.Send(superadmin)
 
             end
 
@@ -94,9 +93,6 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
         end)
 
     end
-
-    -- Perfopus started
-    PERFOPUS.Started = true
 end)
 
 

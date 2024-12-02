@@ -116,26 +116,17 @@ local function CreateBar( panel, frac, perfdata )
 
 
     if bar.perfdata && bar.perfdata.realm then
-        local tooltip_func_metrics = {}
-        for funcname, time in pairs(bar.perfdata.funcs or {}) do
-            table.insert(tooltip_func_metrics, {name=funcname, time=math.Round(time, 4)})
-        end
+        local tooltipmetricstr = PERFOPUS.MakeToolTipString( bar.perfdata.funcs )
 
-        if !table.IsEmpty(tooltip_func_metrics) then
-            local ToolTipStr = ""
-            table.sort(tooltip_func_metrics, function(a, b) return a.time > b.time end)
+        if #tooltipmetricstr > 0 then
 
-            for _, funcdata in ipairs(tooltip_func_metrics) do
-                if funcdata.time == 0 then continue end
-                ToolTipStr = ToolTipStr..funcdata.name.." ~ "..(funcdata.time*1000).."ms\n"
-            end
+            bar:SetTooltip("Most Time Consuming:\n"..tooltipmetricstr)
+            bar:SetTooltipDelay(0)
 
-            if #ToolTipStr != 0 then
-                ToolTipStr = "Most Time Consuming:\n"..ToolTipStr
-
-                bar:SetTooltip(ToolTipStr)
-                bar:SetTooltipDelay(0)
-            end
+        elseif bar.perfdata.tooltipstr then
+            local ToolTipStr = "Most Time Consuming:\n"..bar.perfdata.tooltipstr
+            bar:SetTooltip(ToolTipStr)
+            bar:SetTooltipDelay(0)
         end
     end
 
@@ -179,8 +170,14 @@ function PERFOPUS.RefreshMetrics( panel )
 end
 
 
-function PERFOPUS.ReceiveServerMetrics(readable_metrics)
-    readable_metrics_sv = readable_metrics
+function PERFOPUS.ReceiveServerMetrics(source, tooltipstr, realm, time)
+    readable_metrics_sv[source] = {tooltipstr=tooltipstr, realm=realm, time=time, funcs={}}
+    
+    -- Invalidate metrics
+    local oldValue = readable_metrics_sv[source]
+    timer.Create("PERFOPUS: Invalidate "..source, PERFOPUS.REFRESH_RATE:GetFloat()+1, 1, function()
+        readable_metrics_sv[source] = nil
+    end)
 end
 
 

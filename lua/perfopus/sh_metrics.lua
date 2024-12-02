@@ -31,10 +31,11 @@ end
 
 if CLIENT then
     net.Receive("SendServerMetrics", function()
-        if ( ( PERFOPUS.CAMIInstalled and !CAMI.PlayerHasAccess(LocalPlayer(), "Perfopus - View Metrics", nil) ) or !LocalPlayer():IsSuperAdmin() ) then return end
+        if ( ( PERFOPUS.CAMIInstalled and !CAMI.PlayerHasAccess(LocalPlayer(), "Perfopus - View Metrics", nil) )
+        or !LocalPlayer():IsSuperAdmin() ) then return end
 
-        local readable_metrics = net.ReadTable()
-        PERFOPUS.ReceiveServerMetrics(readable_metrics)
+        local source, tooltipstr, realm, time = net.ReadString(), net.ReadString(), net.ReadUInt(1), net.ReadFloat()
+        PERFOPUS.ReceiveServerMetrics(source, tooltipstr, realm, time)
     end)
 end
 
