@@ -28,4 +28,5 @@ end)
 --[[============================ CONV MESSAGE END ============================]]--
 
 PERFOPUS = PERFOPUS or {}
+PERFOPUS.CAMIInstalled = SERVER && file.Exists("autorun/sh_cami.lua", "LUA")
 conv.includeDir( "perfopus" )
