@@ -6,5 +6,5 @@ Open the spawn menu and go to Utilities -> Performance -> Perfopus. Then press "
 
 ## TODO
 - [x] Fix weird behaviour when ULX/ULib present but not CAMI
-- [x] Prevent overflown messages being sent from server
-- [ ] Are any of the above really fixed?
+    - [ ] Is it really fixed?
+- [ ] Prevent overflown messages being sent from server
