@@ -28,5 +28,10 @@ end)
 --[[============================ CONV MESSAGE END ============================]]--
 
 PERFOPUS = PERFOPUS or {}
+
+
 PERFOPUS.CAMIInstalled = SERVER && file.Exists("autorun/sh_cami.lua", "LUA")
+PERFOPUS.CAMIInstalledCvar = CreateConVar("sh_perfopus_cami_installed", "0", FCVAR_REPLICATED, "Do not change this.")
+
+
 conv.includeDir( "perfopus" )
