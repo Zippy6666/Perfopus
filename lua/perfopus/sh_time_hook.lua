@@ -34,7 +34,7 @@ function PERFOPUS.TimeThisHook( hooktype, hookid, listenerfunc )
     local newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( hookfunc(...) )
-        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..tostring(hookid), short_src )
+        listenerfunc( SysTime()-startTime, "HOOK: "..hooktype.." - "..tostring(hookid), short_src, isentity(hookid) && hookid )
         return unpack(return_values)
     end
 

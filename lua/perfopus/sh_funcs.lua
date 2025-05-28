@@ -7,6 +7,7 @@ function PERFOPUS.MakeToolTipString( funcs )
     local tooltip_func_metrics = {}
 
     for funcname, time in pairs(funcs or {}) do
+        if funcname == PERFOPUS.ENT_INFLICTOR_IDX then continue end
         table.insert(tooltip_func_metrics, {name=funcname, time=math.Round(time, 4)})
     end
 

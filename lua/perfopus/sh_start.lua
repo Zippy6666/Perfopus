@@ -55,18 +55,17 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
                 if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
 
                 for k, v in pairs(PERFOPUS.GetReadableMetrics()) do
+                    -- Send server metrics to all super admins
                     net.Start("SendServerMetrics")
                     net.WriteString(k)
                     net.WriteString(PERFOPUS.MakeToolTipString(v.funcs))
                     net.WriteUInt(v.realm, 1)
                     net.WriteFloat(v.time)
                     net.Send(superadmin)
+
+                    -- Inform super admin about minge
+                    PERFOPUS.MingeThink(superadmin, k, v)
                 end
-
-                -- net.Start("SendServerMetrics")
-                -- net.WriteTable(PERFOPUS.GetReadableMetrics()) -- Very expensive, I know
-                -- net.Send(superadmin)
-
             end
 
 

@@ -23,7 +23,7 @@ function PERFOPUS.TimeThisEntMethod( ent, methodname, listenerfunc )
     local newfunc = function(...)
         local startTime = SysTime()
         local return_values = table.Pack( method(...) )
-        listenerfunc( SysTime()-startTime, "METHOD: "..methodname, short_src )
+        listenerfunc( SysTime()-startTime, "METHOD: "..methodname, short_src, ent )
         return unpack(return_values)
     end
     ent[methodname] = newfunc

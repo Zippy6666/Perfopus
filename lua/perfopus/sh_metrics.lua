@@ -2,9 +2,20 @@
 PERFOPUS.Metrics = PERFOPUS.Metrics or {}
 
 
-function PERFOPUS.TakeMeasurement( time, name, source )
+PERFOPUS.ENT_INFLICTOR_IDX = -1
+
+
+function PERFOPUS.TakeMeasurement( time, name, source, ent )
+    -- New measurement of *source* (a lua file path), with data ({})
     PERFOPUS.Metrics[source] = PERFOPUS.Metrics[source] or {}
+
+    -- Add a sub source of *name* with execution time
+    -- A sub source is a function call in some form
     PERFOPUS.Metrics[source][name] = PERFOPUS.Metrics[source][name] && PERFOPUS.Metrics[source][name] + time or time
+
+    -- Optional entity that is to blame for the execution time
+    ent = ent or NULL
+    PERFOPUS.Metrics[source][PERFOPUS.ENT_INFLICTOR_IDX] = ent
 end
 
 
@@ -13,8 +24,14 @@ function PERFOPUS.GetReadableMetrics()
 
     local srcs_metrics = {}
     for src, functbl in pairs(PERFOPUS.Metrics) do
-        srcs_metrics[src] = {funcs=functbl, realm=SERVER && REALM_SV or REALM_CL }
+        local entInfl = functbl[PERFOPUS.ENT_INFLICTOR_IDX]
+        functbl[PERFOPUS.ENT_INFLICTOR_IDX] = nil
+
+        srcs_metrics[src] = {funcs=functbl, realm=SERVER && REALM_SV or REALM_CL, ent=entInfl }
+
         for funcname, time in pairs(functbl) do
+            if funcname == PERFOPUS.ENT_INFLICTOR_IDX then continue end
+
             srcs_metrics[src].time = srcs_metrics[src].time && srcs_metrics[src].time+time or time
         end
     end
