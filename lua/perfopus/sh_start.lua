@@ -48,13 +48,13 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
             if PERFOPUS.FREEZE:GetBool() then return end
             if NextThink > CurTime() then return end
 
+            local readableMetrics = PERFOPUS.GetReadableMetrics()
 
-            for _, superadmin in player.Iterator() do
-                if ( ( PERFOPUS.CAMIInstalled and !CAMI.PlayerHasAccess(superadmin, "Perfopus - View Metrics", nil) ) or !superadmin:IsSuperAdmin() ) then continue end
-
-                if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
-
-                for k, v in pairs(PERFOPUS.GetReadableMetrics()) do
+            for k, v in pairs(readableMetrics) do
+                for _, superadmin in player.Iterator() do
+                    if ( ( PERFOPUS.CAMIInstalled and !CAMI.PlayerHasAccess(superadmin, "Perfopus - View Metrics", nil) ) or !superadmin:IsSuperAdmin() ) then continue end
+                    if superadmin:GetInfoNum("cl_perfopus_showing_metrics", 0) < 1 then continue end
+                    
                     -- Send server metrics to all super admins
                     net.Start("SendServerMetrics")
                     net.WriteString(k)
@@ -62,12 +62,15 @@ concommand.Add(SERVER && "sv_perfopus_start" or "cl_perfopus_start", function(pl
                     net.WriteUInt(v.realm, 1)
                     net.WriteFloat(v.time)
                     net.Send(superadmin)
-
-                    -- Inform super admin about minge
-                    PERFOPUS.MingeThink(superadmin, k, v)
                 end
+
+                -- Handle mingebags that lag the server with LUA entities
+                PERFOPUS.MingeThink(v)
             end
 
+            -- Handle mingebags that lag the server with LUA entities
+            PERFOPUS.HandleMinges()
+            PERFOPUS.ResetMingeStats()
 
             table.Empty(PERFOPUS.Metrics)
             NextThink = CurTime()+PERFOPUS.REFRESH_RATE:GetFloat()
